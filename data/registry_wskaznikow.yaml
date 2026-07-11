@@ -1,0 +1,157 @@
+# Rejestr wskaźników. Dodanie nowego = nowy wpis, bez zmian w kodzie ETL.
+# Pola: id, nazwa_pl, kategoria, zrodlo, seria_template, czestotliwosc, jednostka, aktywny, formula (opcjonalne, dla wskaźników pochodnych)
+
+- id: cpi_yoy
+  nazwa_pl: "Inflacja CPI r/r"
+  kategoria: cykl_podstawowy
+  zrodlo: OECD
+  seria_template: "CPI.{country}.YOY"
+  czestotliwosc: miesieczna
+  jednostka: procent
+  aktywny: true
+
+- id: cpi_mom
+  nazwa_pl: "Inflacja CPI m/m"
+  kategoria: cykl_podstawowy
+  zrodlo: OECD
+  seria_template: "CPI.{country}.MOM"
+  czestotliwosc: miesieczna
+  jednostka: procent
+  aktywny: true
+
+- id: gdp_growth_yoy
+  nazwa_pl: "Wzrost PKB r/r"
+  kategoria: cykl_podstawowy
+  zrodlo: IMF_WEO
+  seria_template: "NGDP_RPCH.{country}"
+  czestotliwosc: kwartalna
+  jednostka: procent
+  aktywny: true
+
+- id: unemployment_rate
+  nazwa_pl: "Stopa bezrobocia"
+  kategoria: cykl_podstawowy
+  zrodlo: OECD
+  seria_template: "UNR.{country}"
+  czestotliwosc: miesieczna
+  jednostka: procent
+  aktywny: true
+
+- id: policy_rate
+  nazwa_pl: "Stopa procentowa banku centralnego"
+  kategoria: cykl_podstawowy
+  zrodlo: BIS
+  seria_template: "CBPOL.{country}"
+  czestotliwosc: dzienna
+  jednostka: procent
+  aktywny: true
+
+- id: bond_yield_10y
+  nazwa_pl: "Rentowność obligacji 10-letnich"
+  kategoria: cykl_podstawowy
+  zrodlo: FRED
+  seria_template: "IRLTLT01{country}M156N"
+  czestotliwosc: dzienna
+  jednostka: procent
+  aktywny: true
+
+- id: gov_debt_gdp
+  nazwa_pl: "Dług publiczny (% PKB)"
+  kategoria: fiskalne
+  zrodlo: IMF_WEO
+  seria_template: "GGXWDG_NGDP.{country}"
+  czestotliwosc: kwartalna
+  jednostka: procent_pkb
+  aktywny: true
+
+- id: gov_balance_gdp
+  nazwa_pl: "Saldo budżetu (% PKB)"
+  kategoria: fiskalne
+  zrodlo: IMF_WEO
+  seria_template: "GGXCNL_NGDP.{country}"
+  czestotliwosc: kwartalna
+  jednostka: procent_pkb
+  aktywny: true
+
+- id: primary_balance_gdp
+  nazwa_pl: "Saldo pierwotne (% PKB)"
+  kategoria: fiskalne
+  zrodlo: IMF_WEO
+  seria_template: "GGXONLB_NGDP.{country}"
+  czestotliwosc: kwartalna
+  jednostka: procent_pkb
+  aktywny: true
+
+- id: current_account_gdp
+  nazwa_pl: "Saldo obrotów bieżących (% PKB)"
+  kategoria: fiskalne
+  zrodlo: IMF_BOP
+  seria_template: "BCA_NGDPD.{country}"
+  czestotliwosc: kwartalna
+  jednostka: procent_pkb
+  aktywny: true
+
+# --- faza 2, gotowe do włączenia, aktywny: false na razie ---
+
+- id: private_sector_balance_gdp
+  nazwa_pl: "Saldo sektora prywatnego (% PKB)"
+  kategoria: bilanse_sektorowe
+  zrodlo: pochodna
+  formula: "-(gov_balance_gdp) + current_account_gdp"
+  czestotliwosc: kwartalna
+  jednostka: procent_pkb
+  aktywny: false
+
+- id: credit_growth_private_yoy
+  nazwa_pl: "Wzrost kredytu dla sektora prywatnego r/r"
+  kategoria: plynnosc
+  zrodlo: BIS
+  seria_template: "CREDIT_PRIV.{country}"
+  czestotliwosc: kwartalna
+  jednostka: procent
+  aktywny: false
+
+- id: central_bank_balance_sheet_gdp
+  nazwa_pl: "Bilans banku centralnego (% PKB)"
+  kategoria: plynnosc
+  zrodlo: BIS
+  seria_template: "CBBS.{country}"
+  czestotliwosc: miesieczna
+  jednostka: procent_pkb
+  aktywny: false
+
+- id: money_supply_m3_yoy
+  nazwa_pl: "Podaż pieniądza M3 r/r"
+  kategoria: plynnosc
+  zrodlo: ECB_lub_bank_centralny
+  seria_template: "M3.{country}"
+  czestotliwosc: miesieczna
+  jednostka: procent
+  aktywny: false
+
+- id: real_interest_rate
+  nazwa_pl: "Realna stopa procentowa"
+  kategoria: plynnosc
+  zrodlo: pochodna
+  formula: "policy_rate - cpi_yoy"
+  czestotliwosc: miesieczna
+  jednostka: procent
+  aktywny: false
+
+- id: fx_reserves
+  nazwa_pl: "Rezerwy walutowe"
+  kategoria: plynnosc
+  zrodlo: IMF_IFS
+  seria_template: "RAFA_USD.{country}"
+  czestotliwosc: miesieczna
+  jednostka: mld_usd
+  aktywny: false
+
+- id: real_wage_growth_yoy
+  nazwa_pl: "Wzrost płac realnych r/r"
+  kategoria: praca
+  zrodlo: pochodna
+  formula: "nominal_wage_growth_yoy - cpi_yoy"
+  czestotliwosc: kwartalna
+  jednostka: procent
+  aktywny: false

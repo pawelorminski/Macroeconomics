@@ -1,0 +1,23 @@
+# Polska jako priorytet, pełne G20, plus UE i Świat jako agregaty
+- { kod: POL, nazwa_pl: "Polska", grupa: priorytet, gus_bdl: true }
+- { kod: ARG, nazwa_pl: "Argentyna", grupa: g20 }
+- { kod: AUS, nazwa_pl: "Australia", grupa: g20 }
+- { kod: BRA, nazwa_pl: "Brazylia", grupa: g20 }
+- { kod: CAN, nazwa_pl: "Kanada", grupa: g20 }
+- { kod: CHN, nazwa_pl: "Chiny", grupa: g20 }
+- { kod: FRA, nazwa_pl: "Francja", grupa: g20 }
+- { kod: DEU, nazwa_pl: "Niemcy", grupa: g20 }
+- { kod: IND, nazwa_pl: "Indie", grupa: g20 }
+- { kod: IDN, nazwa_pl: "Indonezja", grupa: g20 }
+- { kod: ITA, nazwa_pl: "Włochy", grupa: g20 }
+- { kod: JPN, nazwa_pl: "Japonia", grupa: g20 }
+- { kod: MEX, nazwa_pl: "Meksyk", grupa: g20 }
+- { kod: RUS, nazwa_pl: "Rosja", grupa: g20 }
+- { kod: SAU, nazwa_pl: "Arabia Saudyjska", grupa: g20 }
+- { kod: ZAF, nazwa_pl: "RPA", grupa: g20 }
+- { kod: KOR, nazwa_pl: "Korea Południowa", grupa: g20 }
+- { kod: TUR, nazwa_pl: "Turcja", grupa: g20 }
+- { kod: GBR, nazwa_pl: "Wielka Brytania", grupa: g20 }
+- { kod: USA, nazwa_pl: "Stany Zjednoczone", grupa: g20 }
+- { kod: EU, nazwa_pl: "Unia Europejska", grupa: agregat }
+- { kod: WLD, nazwa_pl: "Świat", grupa: agregat }
