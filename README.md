@@ -70,16 +70,30 @@ print(tozsamosc_sektorowa(delta_g=2, cab=-1))
 
 ### Stan ETL
 
-`pobierz_nbp.py` i `pobierz_gus.py` są w pełni zaimplementowane (prawdziwe
-zapytania HTTP, parsowanie, walidacja, upsert), ale **nie zostały jeszcze
-przetestowane na żywym API** — to środowisko, w którym powstał ten kod, nie
-ma dostępu do ogólnego ruchu wychodzącego do dowolnych hostów. Przed pierwszym
-uruchomieniem produkcyjnym zrób smoke test lokalnie albo przez
-`workflow_dispatch` w GitHub Actions i zweryfikuj, że odpowiedzi API pasują do
-oczekiwanego kształtu. `pobierz_imf.py`, `pobierz_eurostat.py` i
-`pobierz_danegovpl.py` to celowo szkielety — składnia zapytań SDMX (IMF,
-Eurostat) i wybór konkretnych zbiorów (dane.gov.pl) wymagają przetestowania
-na żywym API.
+`pobierz_nbp.py` i `pobierz_gus.py` zostały zweryfikowane na żywym API przez
+`workflow_dispatch` w GitHub Actions (zapytania nie mogły zostać przetestowane
+z sandboxa, w którym powstał ten kod — brak tam dostępu do ogólnego ruchu
+wychodzącego):
+
+- **NBP**: pobrał realne kursy średnie USD/PLN i EUR/PLN z ostatnich 5 dni
+  roboczych, poprawnie sparsowane i zwalidowane.
+- **GUS BDL**: wyszukał zmienną „stopa bezrobocia rejestrowanego” i pobrał
+  realne wartości roczne 2011–2025 (13,1% → 5,4%, zgodne ze znanymi danymi
+  GUS); walidacja poprawnie odrzuciła nieprawidłowy wiersz z datą w
+  przyszłości. Uwaga: `szukaj_zmiennej()` bierze pierwsze dopasowanie po
+  nazwie — GUS BDL bywa ma kilka podobnie nazwanych zmiennych o różnej
+  granulacji, więc przy dodawaniu kolejnych fraz w `SZUKANE_ZMIENNE` warto
+  przejrzeć logi (`Fraza ... ma N dopasowań ...`) i w razie potrzeby
+  doprecyzować wybór.
+
+Oba zapisy do Supabase zostały pominięte tylko dlatego, że sekrety
+`SUPABASE_URL`/`SUPABASE_KEY` nie są jeszcze skonfigurowane w repo — reszta
+ścieżki (HTTP, parsowanie, walidacja) zadziałała bez błędów.
+
+`pobierz_imf.py`, `pobierz_eurostat.py` i `pobierz_danegovpl.py` to celowo
+szkielety — uruchamiają się bez błędów, ale składnia zapytań SDMX (IMF,
+Eurostat) i wybór konkretnych zbiorów (dane.gov.pl) wciąż wymagają
+dopisania po przetestowaniu na żywym API.
 
 ## Dodawanie nowego wskaźnika
 

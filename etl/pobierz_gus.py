@@ -102,6 +102,15 @@ def main() -> None:
             LOG.warning("Brak dopasowań w GUS BDL dla frazy '%s'", fraza)
             continue
 
+        if len(trafienia) > 1:
+            LOG.info(
+                "Fraza '%s' ma %d dopasowań w GUS BDL, używam pierwszego — sprawdź, czy to właściwa "
+                "granulacja (np. inna zmienna per miesiąc): %s",
+                fraza,
+                len(trafienia),
+                [(t["id"], t.get("n1", "")) for t in trafienia],
+            )
+
         zmienna_id = trafienia[0]["id"]
         LOG.info("Znaleziono zmienną id=%s dla '%s': %s", zmienna_id, fraza, trafienia[0].get("n1", ""))
 
