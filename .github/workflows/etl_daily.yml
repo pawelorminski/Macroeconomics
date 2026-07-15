@@ -13,6 +13,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install -r requirements.txt
+      - run: python -m etl._probe_sdmx
       - run: python -m etl.pobierz_nbp
       - run: python -m etl.pobierz_gus
       - run: python -m etl.pobierz_imf
