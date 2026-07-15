@@ -1,0 +1,60 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+@import "tailwindcss";
+
+:root {
+  --tlo: #0f1b2a;
+  --karta: #16273b;
+  --pole: #1c3149;
+  --linia: #2a3b52;
+  --tekst: #edeee9;
+  --tekst-stlumiony: #8b98aa;
+  --tekst-faint: #5d6b80;
+  --ujemny: #c4694a;
+  --dodatni: #4fb8a6;
+  --akcent-zloty: #c9a24b;
+}
+
+@theme inline {
+  --color-tlo: var(--tlo);
+  --color-karta: var(--karta);
+  --color-pole: var(--pole);
+  --color-linia: var(--linia);
+  --color-tekst: var(--tekst);
+  --color-tekst-stlumiony: var(--tekst-stlumiony);
+  --color-tekst-faint: var(--tekst-faint);
+  --color-ujemny: var(--ujemny);
+  --color-dodatni: var(--dodatni);
+  --color-akcent-zloty: var(--akcent-zloty);
+  --font-sans: "IBM Plex Sans", -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}
+
+body {
+  background: var(--tlo);
+  color: var(--tekst);
+  font-family: var(--font-sans);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--pole);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--akcent-zloty);
+  cursor: pointer;
+  border: 2px solid var(--tlo);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--akcent-zloty);
+  cursor: pointer;
+  border: 2px solid var(--tlo);
+}
