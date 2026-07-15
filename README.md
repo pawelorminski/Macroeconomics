@@ -96,13 +96,25 @@ starym szkielecie URL okazał się ignorowany), z kluczami ISO3 zgodnymi z
 do ok. 2031 — nie są filtrowane ręcznie, bo istniejąca walidacja dat w
 `etl/wspolne.py` i tak odrzuca wiersze z datą w przyszłości.
 
+Zweryfikowane na żywo end-to-end (realne wartości, zero błędów) dla
+`gdp_growth_yoy`, `gov_debt_gdp`, `gov_balance_gdp`, `current_account_gdp`
+— po tysiące wierszy na wskaźnik, w tym sensowne liczby jak dług Brazylii
+88.9%/83.9%/84.0% PKB za 2021–2023. Jeden realny problem znaleziony po
+drodze: kod serii `GGXONLB_NGDP` dla `primary_balance_gdp` z rejestru **nie
+istnieje** w DataMapperze — zwraca pusty zbiór (kod obsłużył to bez błędu,
+tylko logiem ostrzeżenia i pominięciem). Właściwy kod DataMapper dla salda
+pierwotnego trzeba jeszcze ustalić i poprawić w
+`data/registry_wskaznikow.yaml`.
+
 `pobierz_eurostat.py` jest częściowo zaimplementowany: stopa bezrobocia dla
 agregatu UE (`une_rt_m`, geo `EU27_2020`) działa end-to-end na żywych
 danych — struktura JSON-stat (pola `id`/`size`/`dimension`/`value`)
-rozpracowana i przetestowana. Wzrost PKB r/r dla UE zostaje jako TODO
-świadomie: dataset `namq_10_gdp` odpowiada, ale nie zweryfikowano, który
-kod jednostki oznacza zmianę r/r a który kw/kw — wolę zostawić to jako
-jawny brak niż zapisać dane pod błędną etykietą częstotliwości.
+rozpracowana i przetestowana, 317 realnych miesięcznych wierszy od 2000
+roku (9,7% na start, 5,9% w maju 2026, zgodne ze znaną historią stopy
+bezrobocia w UE). Wzrost PKB r/r dla UE zostaje jako TODO świadomie:
+dataset `namq_10_gdp` odpowiada, ale nie zweryfikowano, który kod jednostki
+oznacza zmianę r/r a który kw/kw — wolę zostawić to jako jawny brak niż
+zapisać dane pod błędną etykietą częstotliwości.
 
 `pobierz_danegovpl.py` zostaje szkieletem — wybór konkretnych zbiorów z
 katalogu ok. 25 tys. datasetów wymaga przeglądu, nie samej weryfikacji
