@@ -86,14 +86,33 @@ wychodzącego):
   przejrzeć logi (`Fraza ... ma N dopasowań ...`) i w razie potrzeby
   doprecyzować wybór.
 
-Oba zapisy do Supabase zostały pominięte tylko dlatego, że sekrety
-`SUPABASE_URL`/`SUPABASE_KEY` nie są jeszcze skonfigurowane w repo — reszta
-ścieżki (HTTP, parsowanie, walidacja) zadziałała bez błędów.
+`pobierz_imf.py` jest teraz w pełni zaimplementowany i zweryfikowany na
+żywo. Stary endpoint SDMX (`dataservices.imf.org`) już nie istnieje — DNS
+się nie rozwiązuje, IMF go wycofał. Zamiast niego użyty jest IMF DataMapper
+API (`www.imf.org/external/datamapper/api/v1`), potwierdzony na żywo:
+zwraca WSZYSTKIE kraje jednym zapytaniem na wskaźnik (segment `{country}` w
+starym szkielecie URL okazał się ignorowany), z kluczami ISO3 zgodnymi z
+`registry_krajow.yaml` (POL i EU obecne). WEO zawiera też lata prognozowane
+do ok. 2031 — nie są filtrowane ręcznie, bo istniejąca walidacja dat w
+`etl/wspolne.py` i tak odrzuca wiersze z datą w przyszłości.
 
-`pobierz_imf.py`, `pobierz_eurostat.py` i `pobierz_danegovpl.py` to celowo
-szkielety — uruchamiają się bez błędów, ale składnia zapytań SDMX (IMF,
-Eurostat) i wybór konkretnych zbiorów (dane.gov.pl) wciąż wymagają
-dopisania po przetestowaniu na żywym API.
+`pobierz_eurostat.py` jest częściowo zaimplementowany: stopa bezrobocia dla
+agregatu UE (`une_rt_m`, geo `EU27_2020`) działa end-to-end na żywych
+danych — struktura JSON-stat (pola `id`/`size`/`dimension`/`value`)
+rozpracowana i przetestowana. Wzrost PKB r/r dla UE zostaje jako TODO
+świadomie: dataset `namq_10_gdp` odpowiada, ale nie zweryfikowano, który
+kod jednostki oznacza zmianę r/r a który kw/kw — wolę zostawić to jako
+jawny brak niż zapisać dane pod błędną etykietą częstotliwości.
+
+`pobierz_danegovpl.py` zostaje szkieletem — wybór konkretnych zbiorów z
+katalogu ok. 25 tys. datasetów wymaga przeglądu, nie samej weryfikacji
+jednego endpointu.
+
+Wszystkie zapisy do Supabase są nadal pomijane tylko dlatego, że sekrety
+`SUPABASE_URL`/`SUPABASE_KEY` nie są jeszcze skonfigurowane w repo (GitHub
+Settings → Secrets and variables → Actions) — reszta ścieżki (HTTP,
+parsowanie, walidacja) działa bez błędów dla NBP, GUS BDL, IMF i
+częściowo Eurostatu.
 
 ## Dodawanie nowego wskaźnika
 
