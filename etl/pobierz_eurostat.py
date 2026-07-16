@@ -1,17 +1,15 @@
 """ETL: dane Eurostat, JSON-stat REST (ec.europa.eu/eurostat/api/dissemination).
 
-Zakres celowo ograniczony do tego, co faktycznie zweryfikowano na żywo (zob.
-historia komitów — sonda _probe_sdmx.py, usunięta po zakończeniu):
+Dwie serie zaimplementowane, obie zweryfikowane end-to-end na żywych danych
+(zob. historia komitów — sonda _probe_sdmx.py, usunięta po zakończeniu):
 
-- Dataset `une_rt_m` (stopa bezrobocia, miesięczna) dla `geo=EU27_2020`
-  potwierdzony end-to-end: kształt JSON-stat rozpracowany (pola id/size/
-  dimension/value), wartości sensowne (~6% dla UE).
-- Dataset `namq_10_gdp` (PKB, kwartalne) też odpowiedział HTTP 200 z danymi,
-  ALE nie zweryfikowano, który kod jednostki (`unit`) odpowiada wzrostowi
-  r/r (`gdp_growth_yoy` w rejestrze) a który q/q — `CLV_PCH_PRE` użyty w
-  sondzie to prawdopodobnie zmiana kw/kw, nie r/r. Podpięcie tego bez
-  potwierdzenia ryzykowałoby zapisanie danych pod złą etykietą
-  częstotliwości, więc zostaje jako TODO, nie zgadywanie.
+- `une_rt_m` (stopa bezrobocia, miesięczna), geo `EU27_2020`: kształt
+  JSON-stat rozpracowany (pola id/size/dimension/value), 317 realnych
+  wierszy miesięcznych od 2000 roku.
+- `namq_10_gdp` (PKB, kwartalne): kod jednostki `CLV_PCH_SM` potwierdzony
+  jako "percentage change compared to same period in previous year" (r/r) —
+  `CLV_PCH_PRE` użyty we wcześniejszej sondzie to zmiana kw/kw, celowo NIE
+  użyty, żeby nie zapisać danych pod złą etykietą częstotliwości.
 
 Eurostat pokrywa tu wyłącznie agregat UE (`registry_krajow.yaml`, kod `EU`)
 jako uzupełnienie tam, gdzie IMF DataMapper nie ma tego wskaźnika (np.
@@ -38,6 +36,19 @@ BASE_URL = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data"
 # gołego "EU", tylko konkretnej definicji składu (UE-27 po Brexicie).
 GEO_EU = "EU27_2020"
 
+SERIE = [
+    {
+        "wskaznik_id": "unemployment_rate",
+        "dataset": "une_rt_m",
+        "filtry": {"geo": GEO_EU, "s_adj": "SA", "age": "TOTAL", "sex": "T", "unit": "PC_ACT"},
+    },
+    {
+        "wskaznik_id": "gdp_growth_yoy",
+        "dataset": "namq_10_gdp",
+        "filtry": {"geo": GEO_EU, "na_item": "B1GQ", "s_adj": "SCA", "unit": "CLV_PCH_SM"},
+    },
+]
+
 
 def pobierz_json_stat(dataset: str, **filtry: str) -> dict:
     parametry = {"format": "JSON", "lang": "en", **filtry}
@@ -51,7 +62,7 @@ def pobierz_json_stat(dataset: str, **filtry: str) -> dict:
 
 def wartosci_czasowe(dane_json_stat: dict) -> dict[str, float]:
     """Zakłada, że WSZYSTKIE wymiary poza `time` są zawężone do jednej wartości
-    filtrami zapytania (tak jak w `main()` niżej) — wtedy klucz w `value` to
+    filtrami zapytania (tak jak w `SERIE` powyżej) — wtedy klucz w `value` to
     wprost indeks pozycji na osi czasu, bez potrzeby dekodowania pełnego
     iloczynu kartezjańskiego wymiarów JSON-stat.
     """
@@ -67,8 +78,15 @@ def wartosci_czasowe(dane_json_stat: dict) -> dict[str, float]:
 
 
 def etykieta_na_date(etykieta: str) -> dt.date:
-    """'2026-05' (miesięczne) -> ostatni dzień maja 2026."""
-    rok, miesiac = (int(x) for x in etykieta.split("-"))
+    """'2026-05' (miesięczne) -> ostatni dzień maja 2026.
+    '2026-Q1' (kwartalne) -> ostatni dzień marca 2026 (koniec kwartału).
+    """
+    rok_str, okres = etykieta.split("-")
+    rok = int(rok_str)
+    if okres.startswith("Q"):
+        miesiac = int(okres[1]) * 3
+    else:
+        miesiac = int(okres)
     ostatni_dzien = calendar.monthrange(rok, miesiac)[1]
     return dt.date(rok, miesiac, ostatni_dzien)
 
@@ -76,46 +94,34 @@ def etykieta_na_date(etykieta: str) -> dt.date:
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
 
-    try:
-        dane = pobierz_json_stat(
-            "une_rt_m",
-            geo=GEO_EU,
-            s_adj="SA",
-            age="TOTAL",
-            sex="T",
-            unit="PC_ACT",
-        )
-    except (requests.RequestException, ValueError) as blad:
-        LOG.error("Błąd pobierania stopy bezrobocia UE z Eurostatu: %s", blad)
-        return
-
-    for etykieta, wartosc in wartosci_czasowe(dane).items():
-        wiersz = {
-            "kraj_kod": "EU",
-            "wskaznik_id": "unemployment_rate",
-            "data": etykieta_na_date(etykieta),
-            "wartosc": float(wartosc),
-            "zrodlo": "Eurostat",
-        }
+    for seria in SERIE:
         try:
-            zapisz_fakt(**wiersz)
-            LOG.info(
-                "Zapisano %s/%s/%s = %s",
-                wiersz["kraj_kod"],
-                wiersz["wskaznik_id"],
-                wiersz["data"],
-                wiersz["wartosc"],
-            )
-        except BladWalidacji as blad:
-            LOG.info("Pominięto %s (poza zakresem): %s", wiersz, blad)
-        except RuntimeError as blad:
-            LOG.warning("Zapis pominięty (%s). Wiersz do zapisania: %s", blad, wiersz)
+            dane = pobierz_json_stat(seria["dataset"], **seria["filtry"])
+        except (requests.RequestException, ValueError) as blad:
+            LOG.error("Błąd pobierania %s z Eurostatu (%s): %s", seria["wskaznik_id"], seria["dataset"], blad)
+            continue
 
-    LOG.info(
-        "TODO: gdp_growth_yoy dla EU (namq_10_gdp) — kod jednostki r/r vs kw/kw "
-        "wymaga jeszcze jednej weryfikacji na żywym API przed podpięciem, "
-        "zob. docstring modułu."
-    )
+        for etykieta, wartosc in wartosci_czasowe(dane).items():
+            wiersz = {
+                "kraj_kod": "EU",
+                "wskaznik_id": seria["wskaznik_id"],
+                "data": etykieta_na_date(etykieta),
+                "wartosc": float(wartosc),
+                "zrodlo": "Eurostat",
+            }
+            try:
+                zapisz_fakt(**wiersz)
+                LOG.info(
+                    "Zapisano %s/%s/%s = %s",
+                    wiersz["kraj_kod"],
+                    wiersz["wskaznik_id"],
+                    wiersz["data"],
+                    wiersz["wartosc"],
+                )
+            except BladWalidacji as blad:
+                LOG.info("Pominięto %s (poza zakresem): %s", wiersz, blad)
+            except RuntimeError as blad:
+                LOG.warning("Zapis pominięty (%s). Wiersz do zapisania: %s", blad, wiersz)
 
 
 if __name__ == "__main__":

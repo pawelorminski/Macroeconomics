@@ -77,7 +77,7 @@
   nazwa_pl: "Saldo pierwotne (% PKB)"
   kategoria: fiskalne
   zrodlo: IMF_WEO
-  seria_template: "GGXONLB_NGDP.{country}"
+  seria_template: "GGXONLB_G01_GDP_PT.{country}"
   czestotliwosc: kwartalna
   jednostka: procent_pkb
   aktywny: true

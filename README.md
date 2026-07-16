@@ -100,21 +100,28 @@ Zweryfikowane na żywo end-to-end (realne wartości, zero błędów) dla
 `gdp_growth_yoy`, `gov_debt_gdp`, `gov_balance_gdp`, `current_account_gdp`
 — po tysiące wierszy na wskaźnik, w tym sensowne liczby jak dług Brazylii
 88.9%/83.9%/84.0% PKB za 2021–2023. Jeden realny problem znaleziony po
-drodze: kod serii `GGXONLB_NGDP` dla `primary_balance_gdp` z rejestru **nie
-istnieje** w DataMapperze — zwraca pusty zbiór (kod obsłużył to bez błędu,
-tylko logiem ostrzeżenia i pominięciem). Właściwy kod DataMapper dla salda
-pierwotnego trzeba jeszcze ustalić i poprawić w
-`data/registry_wskaznikow.yaml`.
+drodze i **od razu poprawiony**: kod serii `GGXONLB_NGDP` dla
+`primary_balance_gdp` z rejestru nie istniał w DataMapperze (zwracał pusty
+zbiór, obsłużone bez błędu — tylko logiem ostrzeżenia). Właściwy kod,
+`GGXONLB_G01_GDP_PT` ("Primary net lending/borrowing, also referred as
+primary balance"), znaleziony przeszukaniem `/v1/indicators` na żywo i
+podmieniony w `data/registry_wskaznikow.yaml`.
 
-`pobierz_eurostat.py` jest częściowo zaimplementowany: stopa bezrobocia dla
-agregatu UE (`une_rt_m`, geo `EU27_2020`) działa end-to-end na żywych
-danych — struktura JSON-stat (pola `id`/`size`/`dimension`/`value`)
-rozpracowana i przetestowana, 317 realnych miesięcznych wierszy od 2000
-roku (9,7% na start, 5,9% w maju 2026, zgodne ze znaną historią stopy
-bezrobocia w UE). Wzrost PKB r/r dla UE zostaje jako TODO świadomie:
-dataset `namq_10_gdp` odpowiada, ale nie zweryfikowano, który kod jednostki
-oznacza zmianę r/r a który kw/kw — wolę zostawić to jako jawny brak niż
-zapisać dane pod błędną etykietą częstotliwości.
+`pobierz_eurostat.py` ciągnie teraz dwie serie dla agregatu UE, obie
+zweryfikowane end-to-end na żywych danych — struktura JSON-stat (pola
+`id`/`size`/`dimension`/`value`) rozpracowana i przetestowana:
+- `unemployment_rate` (`une_rt_m`, geo `EU27_2020`): 317 realnych
+  miesięcznych wierszy od 2000 roku (9,7% na start, 5,9% w maju 2026).
+- `gdp_growth_yoy` (`namq_10_gdp`, geo `EU27_2020`): pierwsza próba użyła
+  kodu jednostki `CLV_PCH_PRE`, który okazał się zmianą kw/kw, nie r/r —
+  celowo NIE podpięty bez potwierdzenia. Właściwy kod r/r,
+  `CLV_PCH_SM` ("percentage change compared to same period in previous
+  year"), znaleziony przez wylistowanie wszystkich kodów jednostki datasetu
+  na żywo, teraz używany.
+
+Parser dat w `etykieta_na_date()` obsługuje teraz oba formaty etykiet czasu
+Eurostatu: miesięczny (`"2026-05"`) i kwartalny (`"2026-Q1"`, mapowany na
+ostatni dzień kwartału).
 
 `pobierz_danegovpl.py` zostaje szkieletem — wybór konkretnych zbiorów z
 katalogu ok. 25 tys. datasetów wymaga przeglądu, nie samej weryfikacji
